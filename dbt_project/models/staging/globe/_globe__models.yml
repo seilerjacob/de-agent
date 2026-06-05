@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: stg_globe__customers
+    description: >
+      Staged Globe CRM customers. Renames source columns to the canonical naming
+      convention and casts types. One row per Globe customer.
+    columns:
+      - name: customer_id
+        description: "Globe-assigned customer identifier (varchar), renamed from cust_id"
+        tests:
+          - unique
+          - not_null
+      - name: full_name
+        tests:
+          - not_null
+      - name: email
+        description: "Customer email"
+      - name: phone_number
+        description: "Renamed from mobile_phone"
+      - name: organization
+        description: "Associated organization"
+      - name: status
+        description: "Account status: active, inactive, or churned"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'inactive', 'churned']
+      - name: created_at
+        description: "Cast from signup_date string to date"
+        tests:
+          - not_null
+
+  - name: stg_globe__products
+    description: >
+      Staged Globe CRM products. Renames source columns to the canonical naming
+      convention and casts types. One row per Globe product.
+    columns:
+      - name: product_id
+        description: "Globe-assigned product identifier (varchar), renamed from prod_id"
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        description: "Renamed from product_title"
+        tests:
+          - not_null
+      - name: product_description
+        description: "Renamed from product_desc"
+      - name: product_category
+        description: "Renamed from product_type"
+      - name: unit_cost
+        description: "Internal cost per unit"
+      - name: retail_price
+        description: "Customer-facing retail price"
+        tests:
+          - not_null
+      - name: is_available
+        description: "Boolean, derived from available flag (1=true, 0=false)"
+        tests:
+          - not_null
+      - name: created_at
+        description: "Cast from created_at string to date"
+        tests:
+          - not_null

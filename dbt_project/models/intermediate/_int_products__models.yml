@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: int_unified_products
+    description: >
+      Unified product records from Acme CRM (inventory) and Globe CRM
+      (products). Standardizes naming, normalizes availability, and
+      assigns a surrogate key per source system + source ID.
+    columns:
+      - name: product_sk
+        description: "Surrogate key — hash of source_system + source_product_id"
+        tests:
+          - unique
+          - not_null
+
+      - name: source_system
+        description: "Originating CRM system: 'acme' or 'globe'"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['acme', 'globe']
+
+      - name: source_product_id
+        description: "Original primary key from the source system"
+        tests:
+          - not_null
+
+      - name: product_name
+        description: "Standardized product name"
+        tests:
+          - not_null
+
+      - name: retail_price
+        description: "Customer-facing selling price"
+        tests:
+          - not_null
+
+      - name: is_available
+        description: "Whether the product is currently available"
+        tests:
+          - not_null

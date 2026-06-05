@@ -1,0 +1,44 @@
+version: 2
+
+sources:
+  - name: raw_globe
+    description: "Raw ingestion from the Globe CRM SQLite database"
+    schema: raw
+    tables:
+      - name: raw_globe__customers
+        description: "Globe CRM customer records — maps to customer entity"
+        columns:
+          - name: cust_id
+            description: "Globe-assigned customer identifier"
+          - name: full_name
+            description: "Customer full name (single field)"
+          - name: email
+            description: "Customer email"
+          - name: mobile_phone
+            description: "Customer mobile phone"
+          - name: organization
+            description: "Associated organization"
+          - name: signup_date
+            description: "Datetime the customer signed up (ISO 8601 datetime)"
+          - name: status
+            description: "Account status: active, inactive, or churned"
+
+      - name: raw_globe__products
+        description: "Globe CRM product records — maps to product entity"
+        columns:
+          - name: prod_id
+            description: "Globe-assigned product identifier"
+          - name: product_title
+            description: "Product display name"
+          - name: product_desc
+            description: "Product description"
+          - name: product_type
+            description: "Product type/category"
+          - name: unit_cost
+            description: "Internal cost per unit"
+          - name: retail_price
+            description: "Customer-facing retail price"
+          - name: available
+            description: "Availability flag (1=available, 0=discontinued)"
+          - name: created_at
+            description: "Datetime the product was created (ISO 8601 datetime)"

@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: stg_acme__contacts
+    description: >
+      Staged Acme CRM contacts. Renames source columns to the canonical naming
+      convention and casts types. One row per Acme contact.
+    columns:
+      - name: contact_id
+        description: "Acme-assigned contact identifier (varchar)"
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        tests:
+          - not_null
+      - name: last_name
+        tests:
+          - not_null
+      - name: email
+        description: "Renamed from email_address"
+      - name: phone_number
+        description: "Renamed from phone"
+      - name: organization
+        description: "Renamed from company_name"
+      - name: created_at
+        description: "Cast from created_date string to date"
+        tests:
+          - not_null
+
+  - name: stg_acme__inventory
+    description: >
+      Staged Acme CRM inventory. Renames source columns to the canonical naming
+      convention and casts types. One row per Acme product/item.
+    columns:
+      - name: product_id
+        description: "Acme-assigned item identifier (varchar), renamed from item_id"
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        description: "Renamed from item_name"
+        tests:
+          - not_null
+      - name: product_description
+        description: "Renamed from item_description"
+      - name: product_category
+        description: "Renamed from category"
+      - name: retail_price
+        description: "Renamed from price"
+        tests:
+          - not_null
+      - name: stock_quantity
+        description: "Renamed from stock_qty"
+      - name: created_at
+        description: "Cast from added_date string to date"
+        tests:
+          - not_null

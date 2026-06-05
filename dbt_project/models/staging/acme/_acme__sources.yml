@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: raw_acme
+    description: "Raw ingestion from the Acme CRM SQLite database"
+    schema: raw
+    tables:
+      - name: raw_acme__contacts
+        description: "Acme CRM contact records — maps to customer entity"
+        columns:
+          - name: contact_id
+            description: "Acme-assigned contact identifier"
+          - name: first_name
+            description: "Contact first name"
+          - name: last_name
+            description: "Contact last name"
+          - name: email_address
+            description: "Contact email"
+          - name: phone
+            description: "Contact phone number"
+          - name: company_name
+            description: "Associated company/organization"
+          - name: created_date
+            description: "Date the contact was created (ISO 8601 date)"
+
+      - name: raw_acme__inventory
+        description: "Acme CRM product/inventory records — maps to product entity"
+        columns:
+          - name: item_id
+            description: "Acme-assigned item identifier"
+          - name: item_name
+            description: "Product/item name"
+          - name: item_description
+            description: "Free-text description"
+          - name: category
+            description: "Product category"
+          - name: price
+            description: "Unit selling price"
+          - name: stock_qty
+            description: "Current stock quantity"
+          - name: added_date
+            description: "Date the item was added to inventory (ISO 8601 date)"

@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: int_unified_customers
+    description: >
+      Unified customer records from Acme CRM (contacts) and Globe CRM
+      (customers). Standardizes name fields, defaults missing status,
+      and assigns a surrogate key per source system + source ID.
+    columns:
+      - name: customer_sk
+        description: "Surrogate key — hash of source_system + source_customer_id"
+        tests:
+          - unique
+          - not_null
+
+      - name: source_system
+        description: "Originating CRM system: 'acme' or 'globe'"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['acme', 'globe']
+
+      - name: source_customer_id
+        description: "Original primary key from the source system"
+        tests:
+          - not_null
+
+      - name: full_name
+        description: "Customer full name"
+        tests:
+          - not_null
+
+      - name: email
+        description: "Customer email address"
+
+      - name: status
+        description: "Account status: active, inactive, or churned"
+        tests:
+          - accepted_values:
+              values: ['active', 'inactive', 'churned']
