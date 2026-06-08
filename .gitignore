@@ -23,6 +23,9 @@ dbt_project/target/
 dbt_project/dbt_packages/
 dbt_project/logs/
 
+# Agent tooling — transient, never committed
+.claude/
+
 # IDE
 .idea/
 .vscode/

@@ -146,6 +146,51 @@ When subagents return:
 
 ---
 
+## Worktree Lifecycle and Cleanup
+
+When agents run with `isolation: "worktree"`, Claude Code creates a git worktree under `.claude/worktrees/` and a corresponding `worktree-agent-*` branch. These are scaffolding — they have no value once the work is merged.
+
+**Clean up immediately after validating and merging each agent's work.** Do not wait until the end of a session or leave worktrees across sessions.
+
+### What to remove
+
+**1. The worktrees themselves** (use `-f -f` if they were locked by the agent process):
+```bash
+git worktree remove -f -f .claude/worktrees/<agent-id>
+```
+
+**2. The `worktree-agent-*` bookkeeping branches** — pure artifacts, no semantic meaning:
+```bash
+git branch -d worktree-agent-<id>
+```
+
+**3. Feature branches after merge** — content lives on `dev`; branches are ephemeral:
+```bash
+git branch -d feature/<name>
+```
+
+### Why prompt cleanup matters
+
+- Worktrees consume disk space (each is a full working tree checkout)
+- Branches marked `+` in `git branch -a` are checked out in a worktree and cannot be switched to in the main working tree until the worktree is removed
+- Stale `worktree-agent-*` branches add noise to branch listings with no informational value
+- `.claude/worktrees/` shows as untracked in `git status` until gitignored
+
+### `.gitignore` requirement
+
+`.claude/` must be gitignored. It is transient agent tooling state — equivalent to `.venv/` or `node_modules/`. Add it on project setup:
+
+```
+# Agent tooling — transient, never committed
+.claude/
+```
+
+### The one exception
+
+Keep a worktree alive only if the agent's work produced an unexpected result and you need to inspect the intermediate state. Remove it once the investigation is complete.
+
+---
+
 ## Translating to Other Agent Platforms
 
 | Claude Code concept | Generic equivalent |
