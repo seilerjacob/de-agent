@@ -35,17 +35,43 @@ different schemas feed into a DuckDB lakehouse via a medallion pattern:
      └─────────────────────┘
 ```
 
+## Prerequisites
+
+- **Docker** (for `make run` / `docker compose up`), or
+- **Python 3.11+** and `pip` (for local venv setup)
+
 ## Quick Start
 
+**Option A (Docker):**
+
 ```bash
-# Create a virtual environment
-python -m venv .venv && source .venv/bin/activate
+make run
+# or equivalently:
+docker compose up
+```
 
-# Install dependencies
-pip install -r requirements.txt
+**Option B (Local venv):**
 
-# Run the full pipeline (seed → ingest → dbt build)
+```bash
+bash scripts/bootstrap.sh
+source .venv/bin/activate
 python run_pipeline.py
+```
+
+## Local Development
+
+| Command | Description |
+|---------|-------------|
+| `make test` | Run all tests |
+| `make test-unit` | Unit tests only |
+| `make test-e2e` | Critical path end-to-end test |
+
+## Rebuild from Scratch
+
+```bash
+make clean       # destroy containers and volumes
+make build       # rebuild image from scratch
+make run         # start fresh
 ```
 
 ## Project Structure
