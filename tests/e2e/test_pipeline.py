@@ -11,13 +11,15 @@ not attempt to redirect it.
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 import duckdb
-import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DBT_PROJECT_DIR = PROJECT_ROOT / "dbt_project"
+# Use the dbt from the same venv as pytest to avoid picking up system dbt
+DBT_CMD = str(Path(sys.executable).parent / "dbt")
 WAREHOUSE_PATH = PROJECT_ROOT / "warehouse" / "lakehouse.duckdb"
 
 
@@ -42,7 +44,7 @@ def test_full_pipeline_critical_path() -> None:
     # Step 3: Run dbt build
     result = subprocess.run(
         [
-            "dbt",
+            DBT_CMD,
             "build",
             "--profiles-dir",
             str(DBT_PROJECT_DIR),
