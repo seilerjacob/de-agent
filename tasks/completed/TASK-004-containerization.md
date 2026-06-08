@@ -1,7 +1,7 @@
 ---
 id: TASK-004
 title: Add Dockerfile, docker-compose, Makefile, bootstrap script, and local dev docs
-status: testing
+status: completed
 created: 2026-06-08
 updated: 2026-06-08
 branch: feature/containerization

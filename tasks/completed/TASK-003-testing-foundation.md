@@ -1,7 +1,7 @@
 ---
 id: TASK-003
 title: Add automated testing foundation — pytest unit, integration, and critical path
-status: testing
+status: completed
 created: 2026-06-08
 updated: 2026-06-08
 branch: feature/testing-foundation
@@ -13,12 +13,12 @@ The project has no automated tests. Add a pytest-based test suite covering: unit
 
 ## Acceptance Criteria
 
-- [ ] `tests/unit/test_load_raw.py` exists with unit tests for `extract_sqlite_tables` covering: happy path, missing DB file returns empty or raises, table naming
-- [ ] `tests/e2e/test_pipeline.py` exists with a critical path test that seeds both CRMs, runs `load_to_raw`, runs `dbt build`, and asserts `int_unified_customers` and `int_unified_products` row counts and column presence
-- [ ] All tests pass locally via `pytest tests/`
-- [ ] `requirements-dev.txt` (or updated `requirements.txt`) includes `pytest`
-- [ ] Makefile `test`, `test-unit`, `test-e2e` targets are present (Makefile may be authored in TASK-004 if that branch lands first — coordinate)
-- [ ] Critical path test passes locally
+- [x] `tests/unit/test_load_raw.py` exists with unit tests for `extract_sqlite_tables` covering: happy path, missing DB file returns empty or raises, table naming
+- [x] `tests/e2e/test_pipeline.py` exists with a critical path test that seeds both CRMs, runs `load_to_raw`, runs `dbt build`, and asserts `int_unified_customers` and `int_unified_products` row counts and column presence
+- [x] All tests pass locally via `pytest tests/`
+- [x] `requirements-dev.txt` (or updated `requirements.txt`) includes `pytest`
+- [x] Makefile `test`, `test-unit`, `test-e2e` targets are present
+- [x] Critical path test passes locally
 
 ## Implementation Notes
 
@@ -55,4 +55,4 @@ Unit tests use `tmp_path` for full isolation — they do not touch the real ware
 
 ## Completion Notes
 
-*Fill in on merge.*
+All 10 tests pass (9 unit, 1 e2e critical path). One fix was required post-merge: the e2e test originally used bare `dbt` in subprocess, which resolved to the system `dbt-fusion` binary (incompatible with DuckDB adapter). Fixed by deriving the dbt path from `sys.executable` to always use the venv's dbt. Fix committed directly on `dev` (single-line targeted change, not a separate branch). No follow-on tasks. No technical debt.

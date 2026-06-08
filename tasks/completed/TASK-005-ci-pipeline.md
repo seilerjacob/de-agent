@@ -1,7 +1,7 @@
 ---
 id: TASK-005
 title: Add GitHub Actions CI pipeline
-status: testing
+status: completed
 created: 2026-06-08
 updated: 2026-06-08
 branch: chore/ci-setup
