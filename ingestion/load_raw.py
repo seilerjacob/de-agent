@@ -48,6 +48,10 @@ def extract_sqlite_tables(db_path: Path) -> dict[str, pd.DataFrame]:
     tables: dict[str, pd.DataFrame] = {}
     for table in table_names:
         df = pd.read_sql_query(f"SELECT * FROM {table}", con)  # noqa: S608
+        # pandas 3.x defaults to StringDtype; DuckDB requires object dtype for strings
+        string_cols = [c for c, d in df.dtypes.items() if isinstance(d, pd.StringDtype)]
+        if string_cols:
+            df[string_cols] = df[string_cols].astype(object)
         tables[table] = df
         logger.info("  Extracted %s.%s — %d rows, %d cols", db_path.stem, table, len(df), len(df.columns))
 

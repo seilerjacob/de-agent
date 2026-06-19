@@ -22,6 +22,7 @@ sources/crm_globe/*.db
 dbt_project/target/
 dbt_project/dbt_packages/
 dbt_project/logs/
+logs/
 
 # Agent tooling — transient, never committed
 .claude/
