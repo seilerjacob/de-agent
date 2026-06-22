@@ -1,0 +1,36 @@
+# CLI profile for local development and CI.
+#
+# Pass this directory to dbt via --profiles-dir:
+#
+#     dbt build --project-dir dbt_project --profiles-dir dbt_project/local
+#
+# Load credentials first:
+#
+#     set -a && source .env.snowflake && set +a
+#
+# This file contains no credentials — only env_var() references — so it is
+# safe to commit. Actual secrets live in .env.snowflake (gitignored).
+
+de_agent_snowflake:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', '') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'DE_AGENT_SPIKE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'SNOWFLAKE_LEARNING_WH') }}"
+      schema: DE_AGENT
+      threads: 4
+    ci:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD', '') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', '') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'DE_AGENT_SPIKE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'SNOWFLAKE_LEARNING_WH') }}"
+      schema: DE_AGENT
+      threads: 4

@@ -1,42 +1,21 @@
-# Snowflake reference implementation profile.
+# Snowflake native app profile.
 #
-# All connection parameters are sourced from environment variables — no
-# literal credential values live here. Populate them from `.env.snowflake`
-# (see `.env.snowflake.example` at the repo root) and export them into the
-# shell before running dbt, e.g.:
+# This file is designed for use with Snowflake's native dbt integration
+# (Snowsight > Data Engineering > dbt Projects). The native app injects
+# account and user from the active session — those fields are not needed here.
 #
-#     set -a && source ../.env.snowflake && set +a
+# env_var() is NOT supported in the Snowflake native app runtime. All values
+# in this file must be hardcoded literals.
 #
-# Two output targets:
-#   dev — local development; reads from your sourced `.env.snowflake`.
-#   ci  — GitHub Actions; the same env vars are injected from repo secrets
-#         (password auth only — no private key file on CI runners).
+# For local CLI use, see profiles.local.yml.
+
 de_agent_snowflake:
-  target: dev
+  target: snowflake_ui
   outputs:
-    dev:
-      type: snowflake
-      account: "{{ env_var('SNOWFLAKE_ACCOUNT', '') }}"
-      user: "{{ env_var('SNOWFLAKE_USER', '') }}"
-      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '') }}"
-      role: "{{ env_var('SNOWFLAKE_ROLE', '') }}"
-      database: "{{ env_var('SNOWFLAKE_DATABASE', 'DE_AGENT_SPIKE') }}"
-      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'SNOWFLAKE_LEARNING_WH') }}"
-      schema: DE_AGENT
-      threads: 4
-    ci:
-      type: snowflake
-      account: "{{ env_var('SNOWFLAKE_ACCOUNT', '') }}"
-      user: "{{ env_var('SNOWFLAKE_USER', '') }}"
-      password: "{{ env_var('SNOWFLAKE_PASSWORD', '') }}"
-      role: "{{ env_var('SNOWFLAKE_ROLE', '') }}"
-      database: "{{ env_var('SNOWFLAKE_DATABASE', 'DE_AGENT_SPIKE') }}"
-      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'SNOWFLAKE_LEARNING_WH') }}"
-      schema: DE_AGENT
-      threads: 4
     snowflake_ui:
       type: snowflake
-      account: WORLDWIDETECHNOLOGIESORG-WORLDWIDETECHNOLOGIESPARTNER
+      account: "not needed"
+      user: "not needed"
       authenticator: oauth
       role: DATA_ENGINEER
       database: DE_AGENT_SPIKE
