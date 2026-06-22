@@ -1,11 +1,15 @@
 """
-End-to-end pipeline runner for the medallion architecture demo.
+End-to-end pipeline runner for the medallion architecture demo (Snowflake).
 
 Steps:
     1. Seed both upstream CRM SQLite databases.
-    2. Ingest raw data from SQLite → DuckDB raw layer.
-    3. Run dbt to build curated models.
-    4. Print summary of curated tables.
+    2. Ingest raw data from SQLite → Snowflake RAW schema.
+    3. Run dbt to build curated models (staging views + intermediate Dynamic Tables).
+    4. Print summary of intermediate tables (queried via the Snowflake connector).
+
+This is the Snowflake reference implementation. Credentials are read from
+environment variables sourced from `.env.snowflake` — see
+`docs/reference-snowflake.md`.
 """
 
 from __future__ import annotations
@@ -15,13 +19,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-import duckdb
-
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 DBT_PROJECT_DIR = PROJECT_ROOT / "dbt_project"
-WAREHOUSE_PATH = PROJECT_ROOT / "warehouse" / "lakehouse.duckdb"
+
+# dbt's generate_schema_name macro lands intermediate models in INTERMEDIATE.
+INTERMEDIATE_SCHEMA = "INTERMEDIATE"
 
 
 def step_seed_sources() -> None:
@@ -38,9 +42,9 @@ def step_seed_sources() -> None:
 
 
 def step_ingest_raw() -> None:
-    """Step 2: Load raw data from SQLite into DuckDB."""
+    """Step 2: Load raw data from SQLite into Snowflake."""
     logger.info("=" * 60)
-    logger.info("STEP 2: Ingesting raw layer into DuckDB")
+    logger.info("STEP 2: Ingesting raw layer into Snowflake")
     logger.info("=" * 60)
 
     from ingestion.load_raw import load_to_raw
@@ -85,28 +89,29 @@ def step_dbt_run() -> None:
 
 
 def step_print_summary() -> None:
-    """Step 4: Print a summary of intermediate tables."""
+    """Step 4: Print a summary of intermediate tables from Snowflake."""
     logger.info("=" * 60)
     logger.info("STEP 4: Intermediate layer summary")
     logger.info("=" * 60)
 
-    con = duckdb.connect(str(WAREHOUSE_PATH), read_only=True)
+    from ingestion.load_raw import get_snowflake_connection
 
-    for table in ["int_unified_customers", "int_unified_products"]:
-        try:
-            count = con.execute(
-                f"SELECT COUNT(*) FROM main_intermediate.{table}"
-            ).fetchone()[0]
-            logger.info("  %s: %d rows", table, count)
-            sample = con.execute(
-                f"SELECT * FROM main_intermediate.{table} LIMIT 5"
-            ).fetchdf()
-            print(f"\n--- {table} (first 5 rows) ---")
-            print(sample.to_string(index=False))
-        except Exception as exc:
-            logger.warning("  Could not read %s: %s", table, exc)
+    con = get_snowflake_connection()
+    try:
+        for table in ["int_unified_customers", "int_unified_products"]:
+            fq_table = f"{INTERMEDIATE_SCHEMA}.{table}"
+            try:
+                cur = con.cursor()
+                count = cur.execute(f"SELECT COUNT(*) FROM {fq_table}").fetchone()[0]
+                logger.info("  %s: %d rows", table, count)
 
-    con.close()
+                sample = cur.execute(f"SELECT * FROM {fq_table} LIMIT 5").fetch_pandas_all()
+                print(f"\n--- {table} (first 5 rows) ---")
+                print(sample.to_string(index=False))
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("  Could not read %s: %s", fq_table, exc)
+    finally:
+        con.close()
 
 
 def main() -> None:

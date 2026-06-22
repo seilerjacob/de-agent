@@ -37,6 +37,22 @@ lakehouse via a medallion pattern:
 
 ---
 
+## Snowflake reference implementation
+
+The `reference/snowflake` branch ports this entire pipeline to Snowflake as a
+long-lived reference implementation. It swaps the DuckDB raw layer for the
+Snowflake connector, reconfigures dbt with `dbt-snowflake`, and materializes
+the intermediate layer as **Snowflake Dynamic Tables** (auto-refreshing,
+no scheduler).
+
+That branch is intentionally **not merged into `dev`** — it exists as a
+canonical example alongside the DuckDB baseline. See
+[`docs/reference-snowflake.md`](docs/reference-snowflake.md) (on the
+`reference/snowflake` branch) for setup and a full mapping of medallion layers
+to Snowflake primitives.
+
+---
+
 ## Prerequisites
 
 - **Docker** (for `make run` / `docker compose up`), or

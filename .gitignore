@@ -1,3 +1,7 @@
+# Snowflake credentials (reference/snowflake branch) — never commit;
+# populate from .env.snowflake.example
+.env.snowflake
+
 # Python
 __pycache__/
 *.py[cod]
