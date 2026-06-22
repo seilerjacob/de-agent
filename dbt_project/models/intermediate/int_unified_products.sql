@@ -64,7 +64,7 @@ unioned as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['source_system', 'source_product_id']) }}
+    {{ generate_surrogate_key(['source_system', 'source_product_id']) }}
                                                         as product_sk,
     source_system,
     source_product_id,
