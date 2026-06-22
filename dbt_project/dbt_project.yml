@@ -15,6 +15,9 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+vars:
+  snowflake_warehouse: SNOWFLAKE_LEARNING_WH
+
 models:
   de_agent_lakehouse:
     staging:

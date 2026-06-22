@@ -15,7 +15,7 @@
 {{ config(
     materialized='dynamic_table',
     target_lag='1 minute',
-    snowflake_warehouse=env_var('SNOWFLAKE_WAREHOUSE')
+    snowflake_warehouse=var('snowflake_warehouse')
 ) }}
 
 with acme_products as (
