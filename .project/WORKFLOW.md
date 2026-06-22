@@ -6,14 +6,16 @@
 
 ```
 main        ← always matches production
-├── hotfix/critical-bug   ← exception: branches from and merges back into main
-└── dev     ← integration branch; accumulates completed features
-    ├── feature/user-auth
-    ├── fix/token-expiry
-    └── chore/upgrade-postgres
+├── hotfix/critical-bug      ← exception: branches from and merges back into main
+├── dev     ← integration branch; accumulates completed features
+│   ├── feature/user-auth
+│   ├── fix/token-expiry
+│   └── chore/upgrade-postgres
+└── reference/snowflake      ← long-lived reference implementation (never merges to trunk)
+    └── feature/TASK-024-...  ← feature work targeting this reference branch
 ```
 
-`main` and `dev` are permanent and protected. All other branches are ephemeral.
+`main`, `dev`, and `reference/*` branches are permanent and protected. All other branches are ephemeral.
 
 `hotfix/` branches are the sole exception to the rule that all branches originate from `dev` — see [Production Hotfixes](#production-hotfixes) below.
 
@@ -131,14 +133,33 @@ If in doubt, it is not a hotfix.
 
 ---
 
+## Reference Branches
+
+`reference/*` branches are long-lived, standalone implementations that demonstrate alternative warehouse platforms or architectural patterns (e.g., `reference/snowflake`, `reference/databricks`). They are a permanent part of the branch structure and are never merged into `dev` or `main`.
+
+**Key rules:**
+
+- `reference/*` branches are cut from `dev` at the point of creation, then diverge permanently
+- Feature work targeting a reference branch is branched from that reference branch (not `dev`) and is considered complete when merged into the reference branch
+- A task targeting `reference/snowflake` moves to `tasks/completed/` when its feature branch merges into `reference/snowflake` — not when it reaches `dev`
+- Never rebase a `reference/*` branch onto `dev` — they diverge by design
+- Never merge a `reference/*` branch into `dev` or `main` under any circumstances
+- CI does not run on `reference/*` branches — they may have dependency stacks incompatible with the trunk CI configuration
+
+---
+
 ## Rules Summary
 
 | Rule | Detail |
 |---|---|
-| Feature branches source | Always `dev` |
+| Feature branches source | `dev`, or the target `reference/*` branch if the work is reference-scoped |
 | Hotfix branches source | `main` only — **human creates the branch**; see Production Hotfixes |
-| Staying current | Rebase onto `dev`, never merge |
+| Reference branches source | Cut from `dev` at creation; diverge permanently |
+| Staying current | Rebase feature branches onto their parent (`dev` or the `reference/*` branch), never merge |
 | Merging feature → dev | Pull request only |
+| Merging feature → reference/* | Merge into the reference branch; task is then complete |
 | Merging hotfix → main | **Human only** — agents may not open or merge this PR |
 | Merging dev → main | `--no-ff` merge, signals a deployment |
+| Merging reference/* → dev or main | Never |
 | Direct push to `dev` or `main` | Never |
+| Direct push to `reference/*` or feature branches | Allowed |
