@@ -3,10 +3,12 @@ version: 2
 sources:
   - name: raw_globe
     description: "Raw ingestion from the Globe CRM SQLite database"
-    schema: raw
+    schema: de_agent
     tables:
       - name: raw_globe__customers
         description: "Globe CRM customer records — maps to customer entity"
+        tests:
+          - change_tracking_enabled
         columns:
           - name: cust_id
             description: "Globe-assigned customer identifier"
@@ -25,6 +27,8 @@ sources:
 
       - name: raw_globe__products
         description: "Globe CRM product records — maps to product entity"
+        tests:
+          - change_tracking_enabled
         columns:
           - name: prod_id
             description: "Globe-assigned product identifier"

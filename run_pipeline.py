@@ -3,7 +3,7 @@ End-to-end pipeline runner for the medallion architecture demo (Snowflake).
 
 Steps:
     1. Seed both upstream CRM SQLite databases.
-    2. Ingest raw data from SQLite → Snowflake RAW schema.
+    2. Ingest raw data from SQLite → Snowflake DE_AGENT schema.
     3. Run dbt to build curated models (staging views + intermediate Dynamic Tables).
     4. Print summary of intermediate tables (queried via the Snowflake connector).
 
@@ -24,8 +24,7 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parent
 DBT_PROJECT_DIR = PROJECT_ROOT / "dbt_project"
 
-# dbt's generate_schema_name macro lands intermediate models in INTERMEDIATE.
-INTERMEDIATE_SCHEMA = "INTERMEDIATE"
+INTERMEDIATE_SCHEMA = "DE_AGENT"
 
 
 def step_seed_sources() -> None:
@@ -44,7 +43,7 @@ def step_seed_sources() -> None:
 def step_ingest_raw() -> None:
     """Step 2: Load raw data from SQLite into Snowflake."""
     logger.info("=" * 60)
-    logger.info("STEP 2: Ingesting raw layer into Snowflake")
+    logger.info("STEP 2: Ingesting raw layer into Snowflake (DE_AGENT schema)")
     logger.info("=" * 60)
 
     from ingestion.load_raw import load_to_raw

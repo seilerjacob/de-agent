@@ -2,15 +2,15 @@
 Raw Layer Ingestion — Load SQLite CRM sources into Snowflake.
 
 Reads all tables from each upstream CRM SQLite database and lands them
-as-is into the Snowflake ``RAW`` schema, prefixed by source system name.
+as-is into the Snowflake ``DE_AGENT`` schema, prefixed by source system name.
 
 Snowflake uppercases unquoted identifiers, so raw tables are created with
 uppercase names to match how dbt sources reference them:
 
-    RAW.RAW_ACME__CONTACTS
-    RAW.RAW_ACME__INVENTORY
-    RAW.RAW_GLOBE__CUSTOMERS
-    RAW.RAW_GLOBE__PRODUCTS
+    DE_AGENT.RAW_ACME__CONTACTS
+    DE_AGENT.RAW_ACME__INVENTORY
+    DE_AGENT.RAW_GLOBE__CUSTOMERS
+    DE_AGENT.RAW_GLOBE__PRODUCTS
 
 Credentials are read exclusively from environment variables (sourced from
 ``.env.snowflake`` — see ``.env.snowflake.example``). Both password and
@@ -34,7 +34,7 @@ from snowflake.connector.pandas_tools import write_pandas
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-RAW_SCHEMA = "RAW"
+RAW_SCHEMA = "DE_AGENT"
 
 SOURCES: dict[str, Path] = {
     "acme": PROJECT_ROOT / "sources" / "crm_acme" / "acme_crm.db",
@@ -51,7 +51,7 @@ def get_snowflake_connection() -> snowflake.connector.SnowflakeConnection:
     are only passed when present so the connector applies its defaults.
 
     Returns:
-        An open Snowflake connection scoped to the ``RAW`` schema.
+        An open Snowflake connection scoped to the ``DE_AGENT`` schema.
 
     Raises:
         KeyError: if a required env var is missing.
@@ -64,9 +64,11 @@ def get_snowflake_connection() -> snowflake.connector.SnowflakeConnection:
         "schema": RAW_SCHEMA,
     }
 
-    private_key_path = os.environ.get("SNOWFLAKE_PRIVATE_KEY_PATH", "").strip()
-    if private_key_path:
-        params["private_key_file"] = private_key_path
+    authenticator = os.environ.get("SNOWFLAKE_AUTHENTICATOR", "").strip()
+    if authenticator:
+        params["authenticator"] = authenticator
+    elif os.environ.get("SNOWFLAKE_PRIVATE_KEY_PATH", "").strip():
+        params["private_key_file"] = os.environ["SNOWFLAKE_PRIVATE_KEY_PATH"].strip()
     else:
         params["password"] = os.environ["SNOWFLAKE_PASSWORD"]
 
@@ -112,7 +114,7 @@ def load_to_raw(
 ) -> dict[str, int]:
     """Load all source tables into the Snowflake raw layer.
 
-    Each table is written as ``RAW.RAW_{SOURCE}__{TABLE}`` (uppercased to
+    Each table is written as ``DE_AGENT.RAW_{SOURCE}__{TABLE}`` (uppercased to
     match Snowflake's unquoted-identifier convention; double underscore
     follows the dbt source naming convention). Each table is fully
     replaced on every run (DROP + recreate), matching the DuckDB baseline.
@@ -162,8 +164,10 @@ def load_to_raw(
                 if not success:
                     raise RuntimeError(f"write_pandas failed for {fq_table}")
 
+                con.cursor().execute(f"ALTER TABLE {fq_table} SET CHANGE_TRACKING = TRUE")
+
                 # Track under the lowercase key for caller/test stability.
-                result_key = f"raw.raw_{source_name}__{table_name}"
+                result_key = f"de_agent.raw_{source_name}__{table_name}"
                 results[result_key] = nrows
                 logger.info("  Loaded %s — %d rows", fq_table, nrows)
     finally:

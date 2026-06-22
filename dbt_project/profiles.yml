@@ -18,12 +18,11 @@ de_agent_snowflake:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('SNOWFLAKE_USER') }}"
-      password: "{{ env_var('SNOWFLAKE_PASSWORD', '') }}"
-      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
       role: "{{ env_var('SNOWFLAKE_ROLE', '') }}"
       database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
       warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
-      schema: STAGING
+      schema: DE_AGENT
       threads: 4
     ci:
       type: snowflake
@@ -33,5 +32,14 @@ de_agent_snowflake:
       role: "{{ env_var('SNOWFLAKE_ROLE', '') }}"
       database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
       warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
-      schema: STAGING
+      schema: DE_AGENT
+      threads: 4
+    snowflake_ui:
+      type: snowflake
+      account: WORLDWIDETECHNOLOGIESORG-WORLDWIDETECHNOLOGIESPARTNER
+      authenticator: oauth
+      role: DATA_ENGINEER
+      database: DE_AGENT_SPIKE
+      warehouse: SNOWFLAKE_LEARNING_WH
+      schema: DE_AGENT
       threads: 4

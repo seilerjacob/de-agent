@@ -3,10 +3,12 @@ version: 2
 sources:
   - name: raw_acme
     description: "Raw ingestion from the Acme CRM SQLite database"
-    schema: raw
+    schema: de_agent
     tables:
       - name: raw_acme__contacts
         description: "Acme CRM contact records — maps to customer entity"
+        tests:
+          - change_tracking_enabled
         columns:
           - name: contact_id
             description: "Acme-assigned contact identifier"
@@ -25,6 +27,8 @@ sources:
 
       - name: raw_acme__inventory
         description: "Acme CRM product/inventory records — maps to product entity"
+        tests:
+          - change_tracking_enabled
         columns:
           - name: item_id
             description: "Acme-assigned item identifier"
