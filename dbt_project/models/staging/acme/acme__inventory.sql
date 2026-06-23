@@ -13,4 +13,4 @@ select
     price                           as retail_price,
     stock_qty                       as stock_quantity,
     cast(added_date as date)        as created_at
-from {{ source('raw_acme', 'raw_acme__inventory') }}
+from {{ source('acme', 'acme__inventory') }}

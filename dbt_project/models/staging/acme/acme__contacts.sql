@@ -13,4 +13,4 @@ select
     phone                           as phone_number,
     company_name                    as organization,
     cast(created_date as date)      as created_at
-from {{ source('raw_acme', 'raw_acme__contacts') }}
+from {{ source('acme', 'acme__contacts') }}

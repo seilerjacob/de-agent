@@ -1,11 +1,11 @@
 version: 2
 
 sources:
-  - name: raw_acme
+  - name: acme
     description: "Raw ingestion from the Acme CRM SQLite database"
     schema: raw
     tables:
-      - name: raw_acme__contacts
+      - name: acme__contacts
         description: "Acme CRM contact records — maps to customer entity"
         columns:
           - name: contact_id
@@ -23,7 +23,7 @@ sources:
           - name: created_date
             description: "Date the contact was created (ISO 8601 date)"
 
-      - name: raw_acme__inventory
+      - name: acme__inventory
         description: "Acme CRM product/inventory records — maps to product entity"
         columns:
           - name: item_id
