@@ -46,10 +46,9 @@ the intermediate layer as **Snowflake Dynamic Tables** (auto-refreshing,
 no scheduler).
 
 That branch is intentionally **not merged into `dev`** — it exists as a
-canonical example alongside the DuckDB baseline. See
-[`docs/reference-snowflake.md`](docs/reference-snowflake.md) (on the
-`reference/snowflake` branch) for setup and a full mapping of medallion layers
-to Snowflake primitives.
+canonical example alongside the DuckDB baseline. See `docs/reference-snowflake.md`
+on the `reference/snowflake` branch for setup and a full mapping of medallion
+layers to Snowflake primitives.
 
 ---
 

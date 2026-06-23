@@ -1,7 +1,3 @@
-# Snowflake credentials (reference/snowflake branch) — never commit;
-# populate from .env.snowflake.example
-.env.snowflake
-
 # Python
 __pycache__/
 *.py[cod]
@@ -22,9 +18,16 @@ warehouse/
 sources/crm_acme/*.db
 sources/crm_globe/*.db
 
+# Local secrets — never commit. The Snowflake pipeline lives on the
+# reference/snowflake branch; these may exist locally if that branch was run.
+.env.snowflake
+*.p8
+*.pub
+
 # dbt
 dbt_project/target/
 dbt_project/dbt_packages/
+dbt_project/dbt_internal_packages/
 dbt_project/logs/
 logs/
 
@@ -39,6 +42,3 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
-
-*.p8
-*.pub

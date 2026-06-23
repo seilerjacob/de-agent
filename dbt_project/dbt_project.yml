@@ -2,7 +2,7 @@ name: 'de_agent_lakehouse'
 version: '1.0.0'
 config-version: 2
 
-profile: 'de_agent_snowflake'
+profile: 'de_agent_lakehouse'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -19,6 +19,10 @@ models:
   de_agent_lakehouse:
     staging:
       +materialized: view
-      +schema: stg
+      +schema: staging
     intermediate:
-      +schema: int
+      +materialized: table
+      +schema: intermediate
+    marts:
+      +materialized: view
+      +schema: marts
