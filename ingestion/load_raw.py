@@ -7,10 +7,12 @@ as-is into the Snowflake ``DE_AGENT`` schema, prefixed by source system name.
 Snowflake uppercases unquoted identifiers, so raw tables are created with
 uppercase names to match how dbt sources reference them:
 
-    DE_AGENT_RAW.RAW_ACME__CONTACTS
-    DE_AGENT_RAW.RAW_ACME__INVENTORY
-    DE_AGENT_RAW.RAW_GLOBE__CUSTOMERS
-    DE_AGENT_RAW.RAW_GLOBE__PRODUCTS
+    DE_AGENT_RAW.ACME__CONTACTS
+    DE_AGENT_RAW.ACME__INVENTORY
+    DE_AGENT_RAW.GLOBE__CUSTOMERS
+    DE_AGENT_RAW.GLOBE__PRODUCTS
+    DE_AGENT_RAW.TRANSACTIONS__SALES
+    DE_AGENT_RAW.TRANSACTIONS__QUOTES
 
 Credentials are read exclusively from environment variables (sourced from
 ``.env.snowflake`` — see ``.env.snowflake.example``). Both password and
@@ -39,6 +41,7 @@ RAW_SCHEMA = "DE_AGENT_RAW"
 SOURCES: dict[str, Path] = {
     "acme": PROJECT_ROOT / "sources" / "crm_acme" / "acme_crm.db",
     "globe": PROJECT_ROOT / "sources" / "crm_globe" / "globe_crm.db",
+    "transactions": PROJECT_ROOT / "sources" / "transactions" / "transactions.db",
 }
 
 

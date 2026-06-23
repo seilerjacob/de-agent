@@ -7,8 +7,9 @@ on the SQL/connector calls without a live account.
 Tests cover:
 - extract_sqlite_tables: happy path, multiple tables, exclusion of sqlite internals
 - get_snowflake_connection: password vs. key-pair auth, optional role
-- load_to_raw: skips missing source, RAW schema creation, full-replace (drop +
-  overwrite), Snowflake uppercase naming convention, lowercase result keys
+- load_to_raw: skips missing source, DE_AGENT_RAW schema creation, full-replace
+  (drop + overwrite), Snowflake uppercase {SOURCE}__{TABLE} naming convention,
+  change tracking, lowercase result keys, and the transactions source
 """
 
 from __future__ import annotations
@@ -164,7 +165,7 @@ class TestGetSnowflakeConnection:
         assert kwargs["password"] == "secret"
         assert "private_key_file" not in kwargs
         assert "role" not in kwargs  # not set → omitted
-        assert kwargs["schema"] == "RAW"
+        assert kwargs["schema"] == "DE_AGENT_RAW"
 
     def test_key_pair_auth_takes_precedence(self, monkeypatch) -> None:
         env = {
@@ -213,7 +214,7 @@ class TestLoadToRaw:
 
         load_to_raw(sources={"mycrm": db})
 
-        assert any("CREATE SCHEMA IF NOT EXISTS RAW" in s for s in conn.executed_sql)
+        assert any("CREATE SCHEMA IF NOT EXISTS DE_AGENT_RAW" in s for s in conn.executed_sql)
 
     def test_full_replace_drops_table_first(self, tmp_path: Path, monkeypatch) -> None:
         conn = _install_fake_snowflake(monkeypatch)
@@ -223,11 +224,11 @@ class TestLoadToRaw:
         load_to_raw(sources={"mycrm": db})
 
         assert any(
-            "DROP TABLE IF EXISTS RAW.RAW_MYCRM__ITEMS" in s for s in conn.executed_sql
+            "DROP TABLE IF EXISTS DE_AGENT_RAW.MYCRM__ITEMS" in s for s in conn.executed_sql
         ), "Each table must be dropped before reload (full replace)"
 
     def test_result_key_lowercase_for_caller_stability(self, tmp_path: Path, monkeypatch) -> None:
-        _install_fake_snowflake(monkeypatch, write_rowcounts={"RAW_MYCRM__ITEMS": 3})
+        _install_fake_snowflake(monkeypatch, write_rowcounts={"MYCRM__ITEMS": 3})
         db = tmp_path / "source.db"
         _make_sqlite(db, {
             "items": [{"sku": "A1"}, {"sku": "B2"}, {"sku": "C3"}],
@@ -235,7 +236,7 @@ class TestLoadToRaw:
 
         result = load_to_raw(sources={"mycrm": db})
 
-        assert result == {"raw.raw_mycrm__items": 3}
+        assert result == {"de_agent_raw.raw_mycrm__items": 3}
 
     def test_uppercase_naming_convention(self, tmp_path: Path, monkeypatch) -> None:
         captured: list[str] = []
@@ -257,8 +258,8 @@ class TestLoadToRaw:
 
         load_to_raw(sources={"acme": db})
 
-        assert "RAW.RAW_ACME__CONTACTS" in captured
-        assert "RAW.RAW_ACME__ORDERS" in captured
+        assert "DE_AGENT_RAW.ACME__CONTACTS" in captured
+        assert "DE_AGENT_RAW.ACME__ORDERS" in captured
 
     def test_row_count_matches_source(self, tmp_path: Path, monkeypatch) -> None:
         _install_fake_snowflake(monkeypatch)
@@ -268,7 +269,7 @@ class TestLoadToRaw:
 
         result = load_to_raw(sources={"demo": db})
 
-        assert result["raw.raw_demo__big_table"] == 50
+        assert result["de_agent_raw.raw_demo__big_table"] == 50
 
     def test_connection_closed_on_completion(self, tmp_path: Path, monkeypatch) -> None:
         conn = _install_fake_snowflake(monkeypatch)
@@ -278,3 +279,49 @@ class TestLoadToRaw:
         load_to_raw(sources={"mycrm": db})
 
         conn.close.assert_called_once()
+
+    def test_change_tracking_enabled_after_load(self, tmp_path: Path, monkeypatch) -> None:
+        conn = _install_fake_snowflake(monkeypatch)
+        db = tmp_path / "source.db"
+        _make_sqlite(db, {"items": [{"sku": "A1"}]})
+
+        load_to_raw(sources={"mycrm": db})
+
+        assert any(
+            "ALTER TABLE DE_AGENT_RAW.MYCRM__ITEMS SET CHANGE_TRACKING = TRUE" in s
+            for s in conn.executed_sql
+        ), "Change tracking must be enabled on each loaded table"
+
+    def test_transactions_source_naming_and_change_tracking(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """The transactions source lands as TRANSACTIONS__SALES / __QUOTES with
+        change tracking, matching how the CRM sources are handled."""
+        captured: list[str] = []
+        conn = _install_fake_snowflake(monkeypatch)
+
+        def _capture_write(connection, df, table_name, schema, **kwargs):
+            captured.append(f"{schema}.{table_name}")
+            return True, 1, len(df), None
+
+        monkeypatch.setattr(load_raw, "write_pandas", _capture_write)
+
+        db = tmp_path / "transactions.db"
+        _make_sqlite(db, {
+            "sales": [{"sale_line_id": "SL-1", "sale_id": "SALE-1"}],
+            "quotes": [{"quote_line_id": "QL-1", "quote_id": "QUOTE-1"}],
+        })
+
+        result = load_to_raw(sources={"transactions": db})
+
+        assert "DE_AGENT_RAW.TRANSACTIONS__SALES" in captured
+        assert "DE_AGENT_RAW.TRANSACTIONS__QUOTES" in captured
+        assert set(result) == {
+            "de_agent_raw.raw_transactions__sales",
+            "de_agent_raw.raw_transactions__quotes",
+        }
+        for table in ("TRANSACTIONS__SALES", "TRANSACTIONS__QUOTES"):
+            assert any(
+                f"ALTER TABLE DE_AGENT_RAW.{table} SET CHANGE_TRACKING = TRUE" in s
+                for s in conn.executed_sql
+            ), f"Change tracking must be enabled on {table}"
