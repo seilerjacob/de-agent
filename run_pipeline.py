@@ -32,9 +32,11 @@ def step_seed_sources() -> None:
 
     from sources.crm_acme.seed_acme import seed as seed_acme
     from sources.crm_globe.seed_globe import seed as seed_globe
+    from sources.transactions.seed_transactions import seed as seed_transactions
 
     seed_acme()
     seed_globe()
+    seed_transactions()
 
 
 def step_ingest_raw() -> None:
@@ -92,7 +94,7 @@ def step_print_summary() -> None:
 
     con = duckdb.connect(str(WAREHOUSE_PATH), read_only=True)
 
-    for table in ["unified_customers", "unified_products"]:
+    for table in ["unified_customers", "unified_products", "unified_sales", "unified_quotes"]:
         try:
             count = con.execute(
                 f"SELECT COUNT(*) FROM intermediate.{table}"

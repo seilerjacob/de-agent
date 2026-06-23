@@ -9,6 +9,8 @@ Target tables created:
     raw.acme__inventory
     raw.globe__customers
     raw.globe__products
+    raw.transactions__sales
+    raw.transactions__quotes
 
 Table names follow the ``{source}__{table}`` convention (double underscore)
 so they line up with the dbt source declarations in
@@ -32,6 +34,7 @@ WAREHOUSE_PATH = PROJECT_ROOT / "warehouse" / "lakehouse.duckdb"
 SOURCES: dict[str, Path] = {
     "acme": PROJECT_ROOT / "sources" / "crm_acme" / "acme_crm.db",
     "globe": PROJECT_ROOT / "sources" / "crm_globe" / "globe_crm.db",
+    "transactions": PROJECT_ROOT / "sources" / "transactions" / "transactions.db",
 }
 
 

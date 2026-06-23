@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: customers
+    description: >
+      Canonical, consumer-facing customer dimension. Deduplicated on email
+      across Acme and Globe source systems — when the same email appears in
+      both, the Acme record is retained (Acme is the system of record for
+      customer identity when conflicts exist). Excludes internal fields such
+      as source_customer_id.
+    columns:
+      - name: customer_id
+        description: "Surrogate key (aliased from customer_sk) — hash of source_system + source_customer_id"
+        tests:
+          - not_null
+          - unique
+
+      - name: first_name
+        description: "Customer first name"
+
+      - name: last_name
+        description: "Customer last name (may be null for single-token Globe names)"
+
+      - name: full_name
+        description: "Customer full name"
+        tests:
+          - not_null
+
+      - name: email
+        description: "Customer email address — unique per customer after deduplication"
+        tests:
+          - not_null
+          - unique
+
+      - name: phone_number
+        description: "Customer phone number"
+
+      - name: organization
+        description: "Customer organization or company"
+
+      - name: status
+        description: "Account status: active, inactive, or churned"
+
+      - name: source_system
+        description: "Originating CRM system retained for this record: 'acme' or 'globe'"
+
+      - name: created_at
+        description: "Timestamp the customer record was created in the source system"
+
+      - name: loaded_at
+        description: "Timestamp the record was loaded into the lakehouse"

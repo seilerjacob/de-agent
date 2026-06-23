@@ -26,19 +26,21 @@ WAREHOUSE_PATH = PROJECT_ROOT / "warehouse" / "lakehouse.duckdb"
 def test_full_pipeline_critical_path() -> None:
     """Seed both CRMs, ingest to raw, run dbt build, assert curated shape."""
 
-    # Step 1: Seed both source CRM databases
+    # Step 1: Seed source CRM databases and the shared transactions database
     from sources.crm_acme.seed_acme import seed as seed_acme
     from sources.crm_globe.seed_globe import seed as seed_globe
+    from sources.transactions.seed_transactions import seed as seed_transactions
 
     seed_acme()
     seed_globe()
+    seed_transactions()
 
     # Step 2: Load raw layer (uses module defaults — real warehouse path)
     from ingestion.load_raw import load_to_raw
 
     loaded = load_to_raw()
-    assert len(loaded) == 4, (
-        f"Expected 4 raw tables, got {len(loaded)}: {list(loaded.keys())}"
+    assert len(loaded) == 6, (
+        f"Expected 6 raw tables, got {len(loaded)}: {list(loaded.keys())}"
     )
 
     # Step 3: Run dbt build
