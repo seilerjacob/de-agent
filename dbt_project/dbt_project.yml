@@ -25,3 +25,5 @@ models:
       +schema: stg
     intermediate:
       +schema: int
+    marts:
+      +schema: mart
