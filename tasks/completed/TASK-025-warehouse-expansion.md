@@ -1,10 +1,10 @@
 ---
 id: TASK-025
 title: Warehouse Expansion — Sales, Quotes, and Customers Mart
-status: todo
+status: completed
 created: 2026-06-23
 updated: 2026-06-23
-branch: feature/task-025-warehouse-expansion
+branch: reference/snowflake
 ---
 
 ## Subtasks
@@ -201,4 +201,16 @@ The following are explicitly excluded from this task:
 
 ## Completion Notes
 
-*Fill in on merge. Summarize final state, identify any follow-on work, and note any technical debt incurred.*
+All three subtasks merged into `reference/snowflake` at `0e4d028` on 2026-06-23.
+
+**What shipped:**
+- `sources/transactions/` — new SQLite seed DB and `seed_transactions.py`; `load_raw.py` updated to include transactions source; tables land as `DE_AGENT_RAW.TRANSACTIONS__SALES` / `TRANSACTIONS__QUOTES` with change tracking enabled
+- `dbt_project/models/staging/transactions/` — source YAML (`transactions` / `de_agent_raw`), `transactions__sales.sql` and `transactions__quotes.sql` staging views
+- `dbt_project/models/intermediate/unified_sales.sql` and `unified_quotes.sql` — Dynamic Table intermediates; FK relationships tests against `unified_customers.customer_sk` and `unified_products.product_sk`
+- `dbt_project/models/marts/customers.sql` — first mart model; deduplicates on email (Acme preferred), aliased `customer_sk` → `customer_id`, excludes `source_customer_id`
+- `dbt_project/dbt_project.yml` — `+schema: mart` registered for the marts layer
+- `tests/e2e/test_pipeline.py` — raw table count assertion updated from 4 to 6
+
+**Follow-on work:**
+- `dbt parse` and `dbt build` against live Snowflake not verified (sandbox blocked dbt binary during agent runs) — must be run manually before declaring the pipeline green
+- `reference/snowflake` branch should be updated whenever new entities are added to `dev` per the WORKFLOW.md currency policy
