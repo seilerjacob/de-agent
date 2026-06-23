@@ -1,7 +1,7 @@
 ---
 id: TASK-025c
 title: "Warehouse Expansion — Customers Mart Model"
-status: development
+status: completed
 created: 2026-06-23
 updated: 2026-06-23
 branch: feature/TASK-025c-customers-mart
@@ -91,4 +91,19 @@ In addition to the required consumer-facing columns, `loaded_at` is carried thro
 
 ## Completion Notes
 
-*Fill in on merge.*
+Merged into `reference/snowflake` via `--no-ff` (merge commit "merge TASK-025c:
+customers mart model"), first of the three 025 sub-tasks merged. Completion
+point for a reference-scoped task per `.project/WORKFLOW.md`.
+
+Verified by static inspection during integration: `customers.sql` selects from
+`ref('unified_customers')` (which exists on this branch), and every column it
+projects (`customer_sk`, `first_name`, `last_name`, `full_name`, `email`,
+`phone_number`, `organization`, `status`, `source_system`, `created_at`,
+`loaded_at`) is produced by `unified_customers`. The `marts: +schema: mart`
+registration merged cleanly into `dbt_project.yml` with no conflict. The mart
+does not join transactional data, so it is independent of TASK-025a/025b.
+
+Not run during integration (harness sandbox denies the dbt binary):
+`dbt build --select marts.customers` (AC #11) and the post-run schema check
+(AC #12). These require a live Snowflake connection and must be confirmed by
+the user.

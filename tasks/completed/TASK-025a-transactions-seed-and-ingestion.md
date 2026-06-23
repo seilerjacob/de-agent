@@ -1,7 +1,7 @@
 ---
 id: TASK-025a
 title: "Warehouse Expansion — Transactions Seed Data & Ingestion Plumbing"
-status: development
+status: completed
 created: 2026-06-23
 updated: 2026-06-23
 branch: feature/TASK-025a-transactions-seed-ingestion
@@ -136,4 +136,22 @@ integration agent per task constraints (no Snowflake creds in worktree).
 
 ## Completion Notes
 
-*Fill in on merge.*
+Merged into `reference/snowflake` via `--no-ff` (merge commit "merge TASK-025a:
+transactions seed and ingestion"). This is the completion point for a
+reference-scoped task per `.project/WORKFLOW.md`.
+
+Cross-cutting follow-up handled during integration: this branch changed the raw
+table naming from `RAW_{SOURCE}__{TABLE}` to `{SOURCE}__{TABLE}` and added the
+transactions source, so `load_to_raw()` now returns 6 tables instead of 4. The
+e2e critical-path test (`tests/e2e/test_pipeline.py`) asserted `== 4`; updated to
+`== 6` in a dedicated commit on `reference/snowflake` so the critical path stays
+coherent. 025b's `_transactions__sources.yml` references the new `{SOURCE}__`
+names, confirmed consistent by static inspection.
+
+Not run during integration (environment cannot execute pytest or dbt — both the
+Python interpreter and the dbt binary are denied by the harness sandbox):
+- `pytest tests/unit/` (mock-based, offline)
+- live Snowflake load (acceptance criterion 9 — no creds in this environment)
+- `dbt parse` / `dbt build`
+These must be executed by the user. Static ref/source/column consistency was
+verified by hand and passes (see integration summary).

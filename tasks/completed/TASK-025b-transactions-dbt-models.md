@@ -1,7 +1,7 @@
 ---
 id: TASK-025b
 title: "Warehouse Expansion — Transactions dbt Models (Staging + Intermediate)"
-status: development
+status: completed
 created: 2026-06-23
 updated: 2026-06-23
 branch: feature/TASK-025b-transactions-dbt-models
@@ -90,4 +90,37 @@ No existing models, ingestion code, or seed scripts were modified. No `marts/` d
 
 ## Completion Notes
 
-*Fill in on merge.*
+Merged into `reference/snowflake` via `--no-ff` (merge commit "merge TASK-025b:
+transactions dbt models"). Completion point for a reference-scoped task per
+`.project/WORKFLOW.md`.
+
+IMPORTANT — the Implementation Notes / Acceptance Criteria above describe an
+EARLIER draft that does not match what actually shipped. The names that merged
+are the prefix-free forms that match the current `reference/snowflake`
+convention (`acme__contacts`, `globe__customers`, `unified_customers`,
+`unified_products` — no `stg_`/`int_` prefixes; schema-per-layer landed in
+`1617dd4`):
+
+| Notes above say | What actually merged |
+|---|---|
+| source `raw_transactions`, schema `raw` | source `transactions`, schema `de_agent_raw` |
+| `stg_transactions__sales` / `..__quotes` | `transactions__sales` / `transactions__quotes` |
+| `int_unified_sales` / `int_unified_quotes` | `unified_sales` / `unified_quotes` |
+| `env_var('SNOWFLAKE_WAREHOUSE')` warehouse | `var('snowflake_warehouse')` (matches `unified_customers`) |
+| FK targets `int_unified_customers/products` | FK targets `unified_customers/products` |
+
+The shipped files are the correct, consistent versions. Verified by static
+inspection during integration: every `ref()`/`source()` in the transactions
+staging and intermediate models resolves to an existing model/source, and the
+source declaration (`transactions` / `de_agent_raw` / `transactions__sales` /
+`transactions__quotes`) matches the raw table names produced by TASK-025a's
+`load_raw.py`.
+
+The Implementation Notes section was left as-authored for audit transparency
+rather than retroactively rewritten — this Completion Notes block is the
+authoritative record of what merged.
+
+Not run during integration (harness sandbox denies the dbt binary): `dbt parse`,
+`dbt compile`, `dbt build`. AC #17 remains unverified by execution and must be
+confirmed by the user. A full `dbt build` additionally requires a live Snowflake
+connection and the transactions raw tables loaded by TASK-025a.
