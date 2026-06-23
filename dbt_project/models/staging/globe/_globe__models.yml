@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_globe__customers
+  - name: globe__customers
     description: >
       Staged Globe CRM customers. Renames source columns to the canonical naming
       convention and casts types. One row per Globe customer.
@@ -25,13 +25,14 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['active', 'inactive', 'churned']
+              arguments:
+                values: ['active', 'inactive', 'churned']
       - name: created_at
         description: "Cast from signup_date string to date"
         tests:
           - not_null
 
-  - name: stg_globe__products
+  - name: globe__products
     description: >
       Staged Globe CRM products. Renames source columns to the canonical naming
       convention and casts types. One row per Globe product.

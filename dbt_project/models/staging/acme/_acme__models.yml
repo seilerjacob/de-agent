@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_acme__contacts
+  - name: acme__contacts
     description: >
       Staged Acme CRM contacts. Renames source columns to the canonical naming
       convention and casts types. One row per Acme contact.
@@ -28,7 +28,7 @@ models:
         tests:
           - not_null
 
-  - name: stg_acme__inventory
+  - name: acme__inventory
     description: >
       Staged Acme CRM inventory. Renames source columns to the canonical naming
       convention and casts types. One row per Acme product/item.

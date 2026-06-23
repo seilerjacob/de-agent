@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_unified_products
+  - name: unified_products
     description: >
       Unified product records from Acme CRM (inventory) and Globe CRM
       (products). Standardizes naming, normalizes availability, and
@@ -18,7 +18,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['acme', 'globe']
+              arguments:
+                values: ['acme', 'globe']
 
       - name: source_product_id
         description: "Original primary key from the source system"

@@ -31,7 +31,7 @@ with acme_customers as (
         organization,
         'active'                                        as status,
         created_at
-    from {{ ref('stg_acme__contacts') }}
+    from {{ ref('acme__contacts') }}
 
 ),
 
@@ -52,7 +52,7 @@ globe_customers as (
         organization,
         status,
         created_at
-    from {{ ref('stg_globe__customers') }}
+    from {{ ref('globe__customers') }}
 
 ),
 
@@ -65,7 +65,7 @@ unioned as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['source_system', 'source_customer_id']) }}
+    {{ generate_surrogate_key(['source_system', 'source_customer_id']) }}
                                                         as customer_sk,
     source_system,
     source_customer_id,

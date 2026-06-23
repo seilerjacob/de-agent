@@ -34,7 +34,7 @@ with acme_products as (
             else false
         end                                             as is_available,
         created_at
-    from {{ ref('stg_acme__inventory') }}
+    from {{ ref('acme__inventory') }}
 
 ),
 
@@ -51,7 +51,7 @@ globe_products as (
         cast(null as integer)                           as stock_quantity,
         is_available,
         created_at
-    from {{ ref('stg_globe__products') }}
+    from {{ ref('globe__products') }}
 
 ),
 
@@ -64,7 +64,7 @@ unioned as (
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['source_system', 'source_product_id']) }}
+    {{ generate_surrogate_key(['source_system', 'source_product_id']) }}
                                                         as product_sk,
     source_system,
     source_product_id,
