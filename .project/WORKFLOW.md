@@ -146,6 +146,16 @@ If in doubt, it is not a hotfix.
 - Never merge a `reference/*` branch into `dev` or `main` under any circumstances
 - CI does not run on `reference/*` branches — they may have dependency stacks incompatible with the trunk CI configuration
 
+**Keeping reference branches current:**
+
+`reference/*` branches should reflect the full current state of the lakehouse — every new entity, source, model, and pipeline enhancement that lands on `dev` should be ported to each relevant reference branch. Letting a reference branch fall behind makes it misleading: a reader should be able to run it and see a complete, working implementation, not a snapshot of an older schema.
+
+The practical expectation:
+
+- When a feature merges to `dev` that adds or changes a dbt model, source definition, ingestion table, or pipeline step, create a corresponding task to port that change to each `reference/*` branch where it applies
+- Port only the platform-agnostic logic (column definitions, business rules, model structure); adapt any platform-specific configuration (materializations, warehouse settings, schema names) to fit the reference branch's target platform
+- The porting task is a first-class task: it lives in `tasks/`, is tracked through the same lifecycle, and is assigned when the triggering `dev` feature merges — not deferred indefinitely
+
 ---
 
 ## Rules Summary
