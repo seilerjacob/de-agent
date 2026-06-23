@@ -69,8 +69,8 @@ def test_full_pipeline_critical_path() -> None:
     from ingestion.load_raw import get_snowflake_connection, load_to_raw
 
     loaded = load_to_raw()
-    assert len(loaded) == 4, (
-        f"Expected 4 raw tables, got {len(loaded)}: {list(loaded.keys())}"
+    assert len(loaded) == 6, (
+        f"Expected 6 raw tables, got {len(loaded)}: {list(loaded.keys())}"
     )
 
     # Step 3: Run dbt build
