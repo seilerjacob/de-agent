@@ -22,3 +22,6 @@ models:
   de_agent_lakehouse:
     staging:
       +materialized: view
+      +schema: stg
+    intermediate:
+      +schema: int

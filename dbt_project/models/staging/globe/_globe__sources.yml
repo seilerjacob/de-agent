@@ -1,11 +1,11 @@
 version: 2
 
 sources:
-  - name: raw_globe
+  - name: globe
     description: "Raw ingestion from the Globe CRM SQLite database"
-    schema: de_agent
+    schema: de_agent_raw
     tables:
-      - name: raw_globe__customers
+      - name: globe__customers
         description: "Globe CRM customer records — maps to customer entity"
         tests:
           - change_tracking_enabled
@@ -25,7 +25,7 @@ sources:
           - name: status
             description: "Account status: active, inactive, or churned"
 
-      - name: raw_globe__products
+      - name: globe__products
         description: "Globe CRM product records — maps to product entity"
         tests:
           - change_tracking_enabled

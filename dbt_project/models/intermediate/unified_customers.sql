@@ -31,7 +31,7 @@ with acme_customers as (
         organization,
         'active'                                        as status,
         created_at
-    from {{ ref('stg_acme__contacts') }}
+    from {{ ref('acme__contacts') }}
 
 ),
 
@@ -52,7 +52,7 @@ globe_customers as (
         organization,
         status,
         created_at
-    from {{ ref('stg_globe__customers') }}
+    from {{ ref('globe__customers') }}
 
 ),
 

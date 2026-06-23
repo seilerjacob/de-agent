@@ -17,4 +17,4 @@ select
         else false
     end                             as is_available,
     cast(created_at as date)        as created_at
-from {{ source('raw_globe', 'raw_globe__products') }}
+from {{ source('globe', 'globe__products') }}

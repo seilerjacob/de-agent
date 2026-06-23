@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_unified_customers
+  - name: unified_customers
     description: >
       Unified customer records from Acme CRM (contacts) and Globe CRM
       (customers). Standardizes name fields, defaults missing status,
@@ -18,7 +18,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['acme', 'globe']
+              arguments:
+                values: ['acme', 'globe']
 
       - name: source_customer_id
         description: "Original primary key from the source system"
@@ -37,4 +38,5 @@ models:
         description: "Account status: active, inactive, or churned"
         tests:
           - accepted_values:
-              values: ['active', 'inactive', 'churned']
+              arguments:
+                values: ['active', 'inactive', 'churned']

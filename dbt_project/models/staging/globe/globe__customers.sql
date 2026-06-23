@@ -13,4 +13,4 @@ select
     organization,
     status,
     cast(signup_date as date)       as created_at
-from {{ source('raw_globe', 'raw_globe__customers') }}
+from {{ source('globe', 'globe__customers') }}

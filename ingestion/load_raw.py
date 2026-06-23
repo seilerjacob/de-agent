@@ -7,10 +7,10 @@ as-is into the Snowflake ``DE_AGENT`` schema, prefixed by source system name.
 Snowflake uppercases unquoted identifiers, so raw tables are created with
 uppercase names to match how dbt sources reference them:
 
-    DE_AGENT.RAW_ACME__CONTACTS
-    DE_AGENT.RAW_ACME__INVENTORY
-    DE_AGENT.RAW_GLOBE__CUSTOMERS
-    DE_AGENT.RAW_GLOBE__PRODUCTS
+    DE_AGENT_RAW.RAW_ACME__CONTACTS
+    DE_AGENT_RAW.RAW_ACME__INVENTORY
+    DE_AGENT_RAW.RAW_GLOBE__CUSTOMERS
+    DE_AGENT_RAW.RAW_GLOBE__PRODUCTS
 
 Credentials are read exclusively from environment variables (sourced from
 ``.env.snowflake`` — see ``.env.snowflake.example``). Both password and
@@ -34,7 +34,7 @@ from snowflake.connector.pandas_tools import write_pandas
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-RAW_SCHEMA = "DE_AGENT"
+RAW_SCHEMA = "DE_AGENT_RAW"
 
 SOURCES: dict[str, Path] = {
     "acme": PROJECT_ROOT / "sources" / "crm_acme" / "acme_crm.db",
@@ -51,7 +51,7 @@ def get_snowflake_connection() -> snowflake.connector.SnowflakeConnection:
     are only passed when present so the connector applies its defaults.
 
     Returns:
-        An open Snowflake connection scoped to the ``DE_AGENT`` schema.
+        An open Snowflake connection scoped to the ``DE_AGENT_RAW`` schema.
 
     Raises:
         KeyError: if a required env var is missing.
@@ -114,7 +114,7 @@ def load_to_raw(
 ) -> dict[str, int]:
     """Load all source tables into the Snowflake raw layer.
 
-    Each table is written as ``DE_AGENT.RAW_{SOURCE}__{TABLE}`` (uppercased to
+    Each table is written as ``DE_AGENT_RAW.RAW_{SOURCE}__{TABLE}`` (uppercased to
     match Snowflake's unquoted-identifier convention; double underscore
     follows the dbt source naming convention). Each table is fully
     replaced on every run (DROP + recreate), matching the DuckDB baseline.
@@ -146,7 +146,7 @@ def load_to_raw(
             tables = extract_sqlite_tables(db_path)
 
             for table_name, df in tables.items():
-                sf_table = f"RAW_{source_name.upper()}__{table_name.upper()}"
+                sf_table = f"{source_name.upper()}__{table_name.upper()}"
                 fq_table = f"{RAW_SCHEMA}.{sf_table}"
 
                 # Full replace: drop then recreate via write_pandas
@@ -167,7 +167,7 @@ def load_to_raw(
                 con.cursor().execute(f"ALTER TABLE {fq_table} SET CHANGE_TRACKING = TRUE")
 
                 # Track under the lowercase key for caller/test stability.
-                result_key = f"de_agent.raw_{source_name}__{table_name}"
+                result_key = f"de_agent_raw.raw_{source_name}__{table_name}"
                 results[result_key] = nrows
                 logger.info("  Loaded %s — %d rows", fq_table, nrows)
     finally:

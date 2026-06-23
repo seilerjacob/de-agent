@@ -23,8 +23,9 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 DBT_PROJECT_DIR = PROJECT_ROOT / "dbt_project"
+DBT_PROFILES_DIR = DBT_PROJECT_DIR / "local"
 
-INTERMEDIATE_SCHEMA = "DE_AGENT"
+INTERMEDIATE_SCHEMA = "DE_AGENT_INT"
 
 
 def step_seed_sources() -> None:
@@ -58,7 +59,7 @@ def step_dbt_deps() -> None:
     logger.info("=" * 60)
 
     result = subprocess.run(
-        ["dbt", "deps", "--profiles-dir", str(DBT_PROJECT_DIR)],
+        ["dbt", "deps", "--profiles-dir", str(DBT_PROFILES_DIR)],
         cwd=str(DBT_PROJECT_DIR),
         capture_output=True,
         text=True,
@@ -76,7 +77,7 @@ def step_dbt_run() -> None:
     logger.info("=" * 60)
 
     result = subprocess.run(
-        ["dbt", "build", "--profiles-dir", str(DBT_PROJECT_DIR)],
+        ["dbt", "build", "--profiles-dir", str(DBT_PROFILES_DIR)],
         cwd=str(DBT_PROJECT_DIR),
         capture_output=True,
         text=True,
@@ -97,7 +98,7 @@ def step_print_summary() -> None:
 
     con = get_snowflake_connection()
     try:
-        for table in ["int_unified_customers", "int_unified_products"]:
+        for table in ["unified_customers", "unified_products"]:
             fq_table = f"{INTERMEDIATE_SCHEMA}.{table}"
             try:
                 cur = con.cursor()
