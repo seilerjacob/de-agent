@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: unified_quotes
+    description: >
+      Cleaned and typed quote line items. One row per quote line. Foreign keys
+      to customers and products are validated by relationships tests rather
+      than resolved via joins (the intermediate layer is clean/light only).
+    columns:
+      - name: quote_line_id
+        description: "Unique identifier for the quote line item"
+        tests:
+          - unique
+          - not_null
+
+      - name: quote_id
+        description: "Identifier of the parent quote"
+        tests:
+          - not_null
+
+      - name: customer_id
+        description: "Surrogate key of the customer (matches customer_sk in unified_customers)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('unified_customers')
+              field: customer_sk
+
+      - name: product_id
+        description: "Surrogate key of the product (matches product_sk in unified_products)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('unified_products')
+              field: product_sk
+
+      - name: quoted_price
+        description: "Quoted unit price for the line"
+        tests:
+          - not_null
+
+      - name: quantity
+        description: "Quantity quoted"
+        tests:
+          - not_null
+
+      - name: status
+        description: "Quote status (draft, sent, accepted, expired)"
+
+      - name: expiry_date
+        description: "Date the quote expires"
+
+      - name: created_at
+        description: "Timestamp the quote line was created"
+
+      - name: loaded_at
+        description: "Timestamp the record was loaded into the intermediate layer"

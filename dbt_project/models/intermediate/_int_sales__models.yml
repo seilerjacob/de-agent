@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: unified_sales
+    description: >
+      Cleaned and typed sales line items. One row per sale line. Foreign keys
+      to customers and products are validated by relationships tests rather
+      than resolved via joins (the intermediate layer is clean/light only).
+    columns:
+      - name: sale_line_id
+        description: "Unique identifier for the sale line item"
+        tests:
+          - unique
+          - not_null
+
+      - name: sale_id
+        description: "Identifier of the parent sale"
+        tests:
+          - not_null
+
+      - name: customer_id
+        description: "Surrogate key of the customer (matches customer_sk in unified_customers)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('unified_customers')
+              field: customer_sk
+
+      - name: product_id
+        description: "Surrogate key of the product (matches product_sk in unified_products)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('unified_products')
+              field: product_sk
+
+      - name: amount
+        description: "Monetary amount for the sale line"
+        tests:
+          - not_null
+
+      - name: stage
+        description: "Sales stage (closed_won, closed_lost, pending)"
+
+      - name: close_date
+        description: "Date the sale was closed"
+
+      - name: created_at
+        description: "Timestamp the sale line was created"
+
+      - name: loaded_at
+        description: "Timestamp the record was loaded into the intermediate layer"
