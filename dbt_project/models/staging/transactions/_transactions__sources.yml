@@ -1,0 +1,48 @@
+version: 2
+
+sources:
+  - name: transactions
+    description: "Raw ingestion of transactional records (sales and quotes)"
+    schema: raw
+    tables:
+      - name: transactions__sales
+        description: "Sales line items — one row per product line on a sale"
+        columns:
+          - name: sale_line_id
+            description: "Unique identifier for the sale line item"
+          - name: sale_id
+            description: "Identifier of the parent sale"
+          - name: customer_id
+            description: "Surrogate key of the customer (matches customer_sk in unified_customers)"
+          - name: product_id
+            description: "Surrogate key of the product (matches product_sk in unified_products)"
+          - name: amount
+            description: "Monetary amount for the sale line"
+          - name: stage
+            description: "Sales stage (closed_won, closed_lost, pending)"
+          - name: close_date
+            description: "Date the sale was closed (ISO 8601 date)"
+          - name: created_at
+            description: "Timestamp the sale line was created (ISO 8601 datetime)"
+
+      - name: transactions__quotes
+        description: "Quote line items — one row per product line on a quote"
+        columns:
+          - name: quote_line_id
+            description: "Unique identifier for the quote line item"
+          - name: quote_id
+            description: "Identifier of the parent quote"
+          - name: customer_id
+            description: "Surrogate key of the customer (matches customer_sk in unified_customers)"
+          - name: product_id
+            description: "Surrogate key of the product (matches product_sk in unified_products)"
+          - name: quoted_price
+            description: "Quoted unit price for the line"
+          - name: quantity
+            description: "Quantity quoted"
+          - name: status
+            description: "Quote status (draft, sent, accepted, expired)"
+          - name: expiry_date
+            description: "Date the quote expires (ISO 8601 date)"
+          - name: created_at
+            description: "Timestamp the quote line was created (ISO 8601 datetime)"

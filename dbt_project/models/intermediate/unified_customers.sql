@@ -7,16 +7,8 @@
       - Acme has no status field → default to 'active'.
       - Surrogate key generated from source_system + source ID.
 
-    Materialized as a Snowflake Dynamic Table: Snowflake auto-refreshes it as
-    upstream data changes, within the target_lag window — no dbt scheduler
-    needed for the refresh cycle. See docs/reference-snowflake.md.
+    Materialized as a table (see dbt_project.yml: intermediate +materialized: table).
 */
-
-{{ config(
-    materialized='dynamic_table',
-    target_lag='1 minute',
-    snowflake_warehouse=env_var('SNOWFLAKE_WAREHOUSE')
-) }}
 
 with acme_customers as (
 
