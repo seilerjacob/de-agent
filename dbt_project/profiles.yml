@@ -3,6 +3,6 @@ de_agent_lakehouse:
   outputs:
     dev:
       type: duckdb
-      path: "../warehouse/lakehouse.duckdb"
+      path: "warehouse/lakehouse.duckdb"
       schema: main
       threads: 4
