@@ -144,6 +144,7 @@ If in doubt, it is not a hotfix.
 - A task targeting `reference/snowflake` moves to `tasks/completed/` when its feature branch merges into `reference/snowflake` — not when it reaches `dev`
 - Never rebase a `reference/*` branch onto `dev` — they diverge by design
 - Never merge a `reference/*` branch into `dev` or `main` under any circumstances
+- Work flows in one direction only: **`dev` → `reference/*`, never the reverse.** A feature must first be completed on a `dev`-based branch, merged to `dev`, and verified on trunk (critical path test passing) *before* it is ported to any `reference/*` branch. Do not author net-new feature work directly on a reference branch and then attempt to bring it back to `dev` — that inverts the flow and is prohibited. If a change must reach both, build it on `dev` first.
 - CI does not run on `reference/*` branches — they may have dependency stacks incompatible with the trunk CI configuration
 
 **Keeping reference branches current:**
@@ -152,6 +153,7 @@ If in doubt, it is not a hotfix.
 
 The practical expectation:
 
+- Porting to a `reference/*` branch happens **only after** the triggering feature has been completed on `dev` and verified on trunk (the critical path test passes on `dev`). A reference branch is never the place where a feature is first built or first validated.
 - When a feature merges to `dev` that adds or changes a dbt model, source definition, ingestion table, or pipeline step, create a corresponding task to port that change to each `reference/*` branch where it applies
 - Port only the platform-agnostic logic (column definitions, business rules, model structure); adapt any platform-specific configuration (materializations, warehouse settings, schema names) to fit the reference branch's target platform
 - The porting task is a first-class task: it lives in `tasks/`, is tracked through the same lifecycle, and is assigned when the triggering `dev` feature merges — not deferred indefinitely
