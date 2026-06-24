@@ -1,5 +1,5 @@
 /*
-    Staging: Transactions Quotes
+    Staging: Globe Quotes
 
     1:1 with the raw source table. Raw column names are already canonical,
     so this casts types only — no renames, no business logic.
@@ -15,4 +15,4 @@ select
     cast(status as varchar)         as status,
     cast(expiry_date as date)       as expiry_date,
     cast(created_at as timestamp)   as created_at
-from {{ source('transactions', 'transactions__quotes') }}
+from {{ source('globe', 'globe__quotes') }}

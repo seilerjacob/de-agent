@@ -42,3 +42,25 @@ sources:
             description: "Availability flag (1=available, 0=discontinued)"
           - name: created_at
             description: "Datetime the product was created (ISO 8601 datetime)"
+
+      - name: globe__quotes
+        description: "Globe CRM quote line items — line-item grain, multiple rows per quote_id"
+        columns:
+          - name: quote_line_id
+            description: "Unique identifier for the quote line item"
+          - name: quote_id
+            description: "Identifier of the parent quote (groups line items)"
+          - name: customer_id
+            description: "Surrogate key of the customer (matches customer_sk in unified_customers)"
+          - name: product_id
+            description: "Surrogate key of the product (matches product_sk in unified_products)"
+          - name: quoted_price
+            description: "Quoted unit price for the line"
+          - name: quantity
+            description: "Quantity quoted"
+          - name: status
+            description: "Quote status (draft, sent, accepted, expired)"
+          - name: expiry_date
+            description: "Date the quote expires (ISO 8601 date)"
+          - name: created_at
+            description: "Timestamp the quote line was created (ISO 8601 datetime)"

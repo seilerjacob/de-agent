@@ -40,3 +40,23 @@ sources:
             description: "Current stock quantity"
           - name: added_date
             description: "Date the item was added to inventory (ISO 8601 date)"
+
+      - name: acme__sales
+        description: "Acme CRM sales line items — line-item grain, multiple rows per sale_id"
+        columns:
+          - name: sale_line_id
+            description: "Unique identifier for the sale line item"
+          - name: sale_id
+            description: "Identifier of the parent sale (groups line items)"
+          - name: customer_id
+            description: "Surrogate key of the customer (matches customer_sk in unified_customers)"
+          - name: product_id
+            description: "Surrogate key of the product (matches product_sk in unified_products)"
+          - name: amount
+            description: "Monetary amount for the sale line"
+          - name: stage
+            description: "Sales stage (closed_won, closed_lost, pending)"
+          - name: close_date
+            description: "Date the sale was closed (ISO 8601 date); null when pending"
+          - name: created_at
+            description: "Timestamp the sale line was created (ISO 8601 datetime)"

@@ -20,4 +20,4 @@ select
     cast(expiry_date as date)       as expiry_date,
     cast(created_at as timestamp)   as created_at,
     current_timestamp               as loaded_at
-from {{ ref('transactions__quotes') }}
+from {{ ref('globe__quotes') }}

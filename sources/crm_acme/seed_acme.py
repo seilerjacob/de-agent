@@ -1,17 +1,19 @@
 """
 Seed script for the Acme CRM SQLite database.
 
-Creates and populates two tables with intentionally different naming/schema
+Creates and populates three tables with intentionally different naming/schema
 conventions compared to the Globe CRM, demonstrating the need for schema
 unification in the curated layer.
 
 Tables:
     contacts  — Customer/contact records
     inventory — Product catalog
+    sales     — Sales line items (line-item grain; multiple rows share a sale_id)
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import sqlite3
 from pathlib import Path
@@ -19,6 +21,22 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DB_PATH = Path(__file__).parent / "acme_crm.db"
+
+
+def _surrogate_key(source_system: str, source_id: str) -> str:
+    """Reproduce dbt's generate_surrogate_key for seeding FK values."""
+    return hashlib.md5(f"{source_system}-{source_id}".encode()).hexdigest()
+
+
+# Surrogate keys matching unified_customers / unified_products after dbt runs.
+_CUST_ACME_1  = _surrogate_key("acme",  "1")
+_CUST_ACME_2  = _surrogate_key("acme",  "2")
+_CUST_GLOBE_1 = _surrogate_key("globe", "1")
+_CUST_GLOBE_2 = _surrogate_key("globe", "2")
+_PROD_ACME_1  = _surrogate_key("acme",  "1")
+_PROD_ACME_2  = _surrogate_key("acme",  "2")
+_PROD_GLOBE_1 = _surrogate_key("globe", "1")
+_PROD_GLOBE_2 = _surrogate_key("globe", "2")
 
 CONTACTS_DDL = """
 CREATE TABLE IF NOT EXISTS contacts (
@@ -59,6 +77,19 @@ CONTACTS_DATA = [
     ("Leo", "Garcia", "leo.garcia@hooli.com", "555-0112", None, "2024-10-15"),
 ]
 
+SALES_DDL = """
+CREATE TABLE IF NOT EXISTS sales (
+    sale_line_id  TEXT    PRIMARY KEY,
+    sale_id       TEXT    NOT NULL,
+    customer_id   TEXT    NOT NULL,
+    product_id    TEXT    NOT NULL,
+    amount        REAL    NOT NULL,
+    stage         TEXT    NOT NULL,  -- closed_won, closed_lost, pending
+    close_date    TEXT,              -- ISO 8601 date string, null when pending
+    created_at    TEXT    NOT NULL   -- ISO 8601 datetime string
+);
+"""
+
 INVENTORY_DATA = [
     ("Widget Alpha", "Standard widget, blue finish", "Widgets", 9.99, 150, "2024-01-01"),
     ("Widget Beta", "Premium widget, chrome finish", "Widgets", 14.99, 85, "2024-01-15"),
@@ -70,6 +101,21 @@ INVENTORY_DATA = [
     ("Sensor Module", "Temperature and humidity sensor", "Sensors", 34.99, 45, "2024-05-01"),
     ("Sensor Array", "Multi-point sensor array", "Sensors", 79.99, 20, "2024-06-01"),
     ("Mount Kit", "Universal mounting hardware", "Accessories", 7.99, 300, "2024-07-01"),
+]
+
+
+SALES_DATA = [
+    # sale_line_id, sale_id, customer_id, product_id, amount, stage, close_date, created_at
+    ("SL-0001", "SALE-001", _CUST_ACME_1,  _PROD_ACME_1,   99.90, "closed_won",  "2025-01-15", "2025-01-10 09:30:00"),
+    ("SL-0002", "SALE-001", _CUST_ACME_1,  _PROD_ACME_2,  149.90, "closed_won",  "2025-01-15", "2025-01-10 09:30:00"),
+    ("SL-0003", "SALE-001", _CUST_ACME_1,  _PROD_GLOBE_1,  29.97, "closed_won",  "2025-01-15", "2025-01-10 09:30:00"),
+    ("SL-0004", "SALE-002", _CUST_GLOBE_1, _PROD_GLOBE_2,  77.45, "closed_lost", "2025-02-03", "2025-01-28 14:05:00"),
+    ("SL-0005", "SALE-002", _CUST_GLOBE_1, _PROD_ACME_1,    9.99, "closed_lost", "2025-02-03", "2025-01-28 14:05:00"),
+    ("SL-0006", "SALE-003", _CUST_GLOBE_2, _PROD_GLOBE_1,  59.94, "closed_won",  "2025-02-20", "2025-02-18 11:15:00"),
+    ("SL-0007", "SALE-003", _CUST_GLOBE_2, _PROD_ACME_2,   14.99, "closed_won",  "2025-02-20", "2025-02-18 11:15:00"),
+    ("SL-0008", "SALE-004", _CUST_ACME_2,  _PROD_ACME_1,   19.98, "pending",     None,         "2025-03-05 16:45:00"),
+    ("SL-0009", "SALE-004", _CUST_ACME_2,  _PROD_GLOBE_2,  52.99, "pending",     None,         "2025-03-05 16:45:00"),
+    ("SL-0010", "SALE-004", _CUST_ACME_2,  _PROD_GLOBE_1,   6.99, "pending",     None,         "2025-03-05 16:45:00"),
 ]
 
 
@@ -87,8 +133,10 @@ def seed() -> Path:
     # Create tables
     cur.execute("DROP TABLE IF EXISTS contacts")
     cur.execute("DROP TABLE IF EXISTS inventory")
+    cur.execute("DROP TABLE IF EXISTS sales")
     cur.execute(CONTACTS_DDL)
     cur.execute(INVENTORY_DDL)
+    cur.execute(SALES_DDL)
 
     # Populate
     cur.executemany(
@@ -101,13 +149,22 @@ def seed() -> Path:
         "VALUES (?, ?, ?, ?, ?, ?)",
         INVENTORY_DATA,
     )
+    cur.executemany(
+        "INSERT INTO sales (sale_line_id, sale_id, customer_id, product_id, amount, stage, close_date, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        SALES_DATA,
+    )
 
     con.commit()
     contact_count = cur.execute("SELECT COUNT(*) FROM contacts").fetchone()[0]
     inventory_count = cur.execute("SELECT COUNT(*) FROM inventory").fetchone()[0]
+    sales_count = cur.execute("SELECT COUNT(*) FROM sales").fetchone()[0]
     con.close()
 
-    logger.info("Acme CRM seeded — %d contacts, %d inventory items → %s", contact_count, inventory_count, DB_PATH)
+    logger.info(
+        "Acme CRM seeded — %d contacts, %d inventory items, %d sales → %s",
+        contact_count, inventory_count, sales_count, DB_PATH,
+    )
     return DB_PATH
 
 

@@ -19,4 +19,4 @@ select
     cast(close_date as date)        as close_date,
     cast(created_at as timestamp)   as created_at,
     current_timestamp               as loaded_at
-from {{ ref('transactions__sales') }}
+from {{ ref('acme__sales') }}

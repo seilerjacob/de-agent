@@ -28,6 +28,41 @@ models:
         tests:
           - not_null
 
+  - name: acme__sales
+    description: >
+      Staged Acme CRM sales line items. Casts types only — column names are
+      already canonical. One row per sale line item.
+    columns:
+      - name: sale_line_id
+        description: "Unique identifier for the sale line item"
+        tests:
+          - unique
+          - not_null
+      - name: sale_id
+        description: "Identifier of the parent sale"
+        tests:
+          - not_null
+      - name: customer_id
+        description: "Surrogate key of the customer"
+        tests:
+          - not_null
+      - name: product_id
+        description: "Surrogate key of the product"
+        tests:
+          - not_null
+      - name: amount
+        description: "Monetary amount for the sale line"
+        tests:
+          - not_null
+      - name: stage
+        description: "Sales stage (closed_won, closed_lost, pending)"
+      - name: close_date
+        description: "Date the sale was closed; null when pending"
+      - name: created_at
+        description: "Timestamp the sale line was created"
+        tests:
+          - not_null
+
   - name: acme__inventory
     description: >
       Staged Acme CRM inventory. Renames source columns to the canonical naming

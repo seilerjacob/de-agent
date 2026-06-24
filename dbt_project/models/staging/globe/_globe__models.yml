@@ -32,6 +32,45 @@ models:
         tests:
           - not_null
 
+  - name: globe__quotes
+    description: >
+      Staged Globe CRM quote line items. Casts types only — column names are
+      already canonical. One row per quote line item.
+    columns:
+      - name: quote_line_id
+        description: "Unique identifier for the quote line item"
+        tests:
+          - unique
+          - not_null
+      - name: quote_id
+        description: "Identifier of the parent quote"
+        tests:
+          - not_null
+      - name: customer_id
+        description: "Surrogate key of the customer"
+        tests:
+          - not_null
+      - name: product_id
+        description: "Surrogate key of the product"
+        tests:
+          - not_null
+      - name: quoted_price
+        description: "Quoted unit price for the line"
+        tests:
+          - not_null
+      - name: quantity
+        description: "Quantity quoted"
+        tests:
+          - not_null
+      - name: status
+        description: "Quote status (draft, sent, accepted, expired)"
+      - name: expiry_date
+        description: "Date the quote expires"
+      - name: created_at
+        description: "Timestamp the quote line was created"
+        tests:
+          - not_null
+
   - name: globe__products
     description: >
       Staged Globe CRM products. Renames source columns to the canonical naming

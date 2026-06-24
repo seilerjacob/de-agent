@@ -1,17 +1,19 @@
 """
 Seed script for the Globe CRM SQLite database.
 
-Creates and populates two tables with intentionally different naming/schema
+Creates and populates three tables with intentionally different naming/schema
 conventions compared to the Acme CRM, demonstrating the need for schema
 unification in the curated layer.
 
 Tables:
     customers — Customer records (different column names/structure vs Acme contacts)
     products  — Product catalog (different column names/structure vs Acme inventory)
+    quotes    — Quote line items (line-item grain; multiple rows share a quote_id)
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import sqlite3
 from pathlib import Path
@@ -19,6 +21,22 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DB_PATH = Path(__file__).parent / "globe_crm.db"
+
+
+def _surrogate_key(source_system: str, source_id: str) -> str:
+    """Reproduce dbt's generate_surrogate_key for seeding FK values."""
+    return hashlib.md5(f"{source_system}-{source_id}".encode()).hexdigest()
+
+
+# Surrogate keys matching unified_customers / unified_products after dbt runs.
+_CUST_ACME_1  = _surrogate_key("acme",  "1")
+_CUST_ACME_2  = _surrogate_key("acme",  "2")
+_CUST_GLOBE_1 = _surrogate_key("globe", "1")
+_CUST_GLOBE_2 = _surrogate_key("globe", "2")
+_PROD_ACME_1  = _surrogate_key("acme",  "1")
+_PROD_ACME_2  = _surrogate_key("acme",  "2")
+_PROD_GLOBE_1 = _surrogate_key("globe", "1")
+_PROD_GLOBE_2 = _surrogate_key("globe", "2")
 
 CUSTOMERS_DDL = """
 CREATE TABLE IF NOT EXISTS customers (
@@ -42,6 +60,20 @@ CREATE TABLE IF NOT EXISTS products (
     retail_price    REAL    NOT NULL,
     available       INTEGER NOT NULL DEFAULT 1,  -- 1 = available, 0 = discontinued
     created_at      TEXT    NOT NULL  -- ISO 8601 datetime string
+);
+"""
+
+QUOTES_DDL = """
+CREATE TABLE IF NOT EXISTS quotes (
+    quote_line_id  TEXT    PRIMARY KEY,
+    quote_id       TEXT    NOT NULL,
+    customer_id    TEXT    NOT NULL,
+    product_id     TEXT    NOT NULL,
+    quoted_price   REAL    NOT NULL,
+    quantity       INTEGER NOT NULL,
+    status         TEXT    NOT NULL,  -- draft, sent, accepted, expired
+    expiry_date    TEXT,              -- ISO 8601 date string
+    created_at     TEXT    NOT NULL   -- ISO 8601 datetime string
 );
 """
 
@@ -73,6 +105,21 @@ PRODUCTS_DATA = [
 ]
 
 
+QUOTES_DATA = [
+    # quote_line_id, quote_id, customer_id, product_id, quoted_price, quantity, status, expiry_date, created_at
+    ("QL-0001", "QUOTE-001", _CUST_ACME_1,  _PROD_ACME_1,    9.99,  5, "accepted", "2025-01-31", "2025-01-05 10:00:00"),
+    ("QL-0002", "QUOTE-001", _CUST_ACME_1,  _PROD_ACME_2,   14.99,  2, "accepted", "2025-01-31", "2025-01-05 10:00:00"),
+    ("QL-0003", "QUOTE-001", _CUST_ACME_1,  _PROD_GLOBE_1,   9.99, 10, "accepted", "2025-01-31", "2025-01-05 10:00:00"),
+    ("QL-0004", "QUOTE-002", _CUST_GLOBE_1, _PROD_GLOBE_2,  52.99,  1, "sent",     "2025-02-28", "2025-02-01 13:20:00"),
+    ("QL-0005", "QUOTE-003", _CUST_GLOBE_2, _PROD_ACME_1,    9.99,  3, "draft",    "2025-03-15", "2025-02-25 09:10:00"),
+    ("QL-0006", "QUOTE-003", _CUST_GLOBE_2, _PROD_GLOBE_1,   6.99,  8, "draft",    "2025-03-15", "2025-02-25 09:10:00"),
+    ("QL-0007", "QUOTE-004", _CUST_ACME_2,  _PROD_ACME_2,   14.99,  4, "expired",  "2025-02-10", "2025-01-20 15:30:00"),
+    ("QL-0008", "QUOTE-004", _CUST_ACME_2,  _PROD_GLOBE_2,  52.99,  1, "expired",  "2025-02-10", "2025-01-20 15:30:00"),
+    ("QL-0009", "QUOTE-005", _CUST_GLOBE_1, _PROD_ACME_1,    9.99,  6, "sent",     "2025-04-01", "2025-03-10 11:45:00"),
+    ("QL-0010", "QUOTE-006", _CUST_ACME_1,  _PROD_GLOBE_1,   6.99, 12, "accepted", "2025-03-20", "2025-03-08 08:25:00"),
+]
+
+
 def seed() -> Path:
     """Create and populate the Globe CRM database.
 
@@ -87,8 +134,10 @@ def seed() -> Path:
     # Create tables
     cur.execute("DROP TABLE IF EXISTS customers")
     cur.execute("DROP TABLE IF EXISTS products")
+    cur.execute("DROP TABLE IF EXISTS quotes")
     cur.execute(CUSTOMERS_DDL)
     cur.execute(PRODUCTS_DDL)
+    cur.execute(QUOTES_DDL)
 
     # Populate
     cur.executemany(
@@ -101,13 +150,22 @@ def seed() -> Path:
         "VALUES (?, ?, ?, ?, ?, ?, ?)",
         PRODUCTS_DATA,
     )
+    cur.executemany(
+        "INSERT INTO quotes (quote_line_id, quote_id, customer_id, product_id, quoted_price, quantity, status, expiry_date, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        QUOTES_DATA,
+    )
 
     con.commit()
     cust_count = cur.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
     prod_count = cur.execute("SELECT COUNT(*) FROM products").fetchone()[0]
+    quotes_count = cur.execute("SELECT COUNT(*) FROM quotes").fetchone()[0]
     con.close()
 
-    logger.info("Globe CRM seeded — %d customers, %d products → %s", cust_count, prod_count, DB_PATH)
+    logger.info(
+        "Globe CRM seeded — %d customers, %d products, %d quotes → %s",
+        cust_count, prod_count, quotes_count, DB_PATH,
+    )
     return DB_PATH
 
 
